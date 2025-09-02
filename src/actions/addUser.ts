@@ -10,7 +10,7 @@ import { AUTH_MESSAGES } from '@/constants/messages';
 
 // Schemas
 
-import * as z from 'zod';
+import type * as z from 'zod';
 import { RegisterSchema } from '@/schemas';
 
 // Cryptography
@@ -36,9 +36,9 @@ export const addUser = async (values: z.infer<typeof RegisterSchema>) => {
 
 		if (!validatedFields.success) {
 			return {
-				error:
-					'Nieprawidłowe dane: ' +
-					validatedFields.error.errors.map((e) => e.message).join(', '),
+				error: `Nieprawidłowe dane: ${validatedFields.error.issues
+					.map((e: { message: string }) => e.message)
+					.join(', ')}`,
 			};
 		}
 

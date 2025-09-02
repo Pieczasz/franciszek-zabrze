@@ -68,35 +68,46 @@
 
 @layer base {
 	* {
-		@apply border-border;
+		border-color: hsl(var(--border));
 	}
 	body {
-		@apply bg-background text-foreground;
+		background-color: hsl(var(--background));
+		color: hsl(var(--foreground));
 	}
 
 	.dangerouslySetInnerHTML h1,
 	.dangerouslySetInnerHTML h1 * {
-		@apply font-bold text-3xl py-4;
+		font-weight: bold;
+		font-size: 1.875rem;
+		padding: 1rem 0;
 	}
 	.dangerouslySetInnerHTML h2,
 	.dangerouslySetInnerHTML h2 * {
-		@apply font-bold text-2xl py-4;
+		font-weight: bold;
+		font-size: 1.5rem;
+		padding: 1rem 0;
 	}
 	.dangerouslySetInnerHTML h3,
 	.dangerouslySetInnerHTML h3 * {
-		@apply font-bold text-xl py-4;
+		font-weight: bold;
+		font-size: 1.25rem;
+		padding: 1rem 0;
 	}
 	.dangerouslySetInnerHTML h4,
 	.dangerouslySetInnerHTML h4 * {
-		@apply font-semibold text-lg py-4;
+		font-weight: 600;
+		font-size: 1.125rem;
+		padding: 1rem 0;
 	}
 
 	.dangerouslySetInnerHTML ol,
 	.dangerouslySetInnerHTML ol * {
-		@apply list-inside list-decimal;
+		list-style-position: inside;
+		list-style-type: decimal;
 	}
 	.dangerouslySetInnerHTML ul,
 	.dangerouslySetInnerHTML ul * {
-		@apply list-inside list-disc;
+		list-style-position: inside;
+		list-style-type: disc;
 	}
 }

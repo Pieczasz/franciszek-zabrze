@@ -9,6 +9,7 @@ export const getUserByUsername = async (username: string) => {
 				username,
 			},
 		});
+		return user;
 	} catch {
 		return null;
 	}

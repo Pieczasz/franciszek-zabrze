@@ -13,6 +13,7 @@ import { RegisterSchema } from '@/schemas';
 // Database
 
 import { db } from '@/lib/db';
+import { requireAdmin, createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
 
 // Extended schema to include password fields
 const EditUserSchema = RegisterSchema.extend({
@@ -27,49 +28,69 @@ export const editUser = async (
 	id: string,
 	values: z.infer<typeof EditUserSchema>
 ) => {
-	// Validating values with zod and EditUserSchema
-	const validatedFields = EditUserSchema.safeParse(values);
-
-	const session = await auth();
-
-	// If user doesn't have session he can't add post
-	if (!session) {
-		return { error: 'Twoja sesja nie istnieje!' };
-	}
-
-	if (!session?.user?.role?.includes('admin')) {
-		return {
-			error: 'Nie masz permisji do dodawania postów',
-		};
-	}
-
-	// Safe checking if all fields are valid
-	if (!validatedFields.success) {
-		return { error: validatedFields.error.flatten().fieldErrors };
-	}
-
-	const { username, role, firstname, lastname, newPassword } =
-		validatedFields.data;
-
-	const hashedPassword = await bcrypt.hash(newPassword, 10);
-
 	try {
-		// Updating user details and password if provided
+		// Ensure only admins can edit users
+		await requireAdmin();
+
+		// Validate user ID format (basic UUID/CUID check)
+		if (!id || typeof id !== 'string' || id.length < 10) {
+			return createErrorResponse(new Error('Invalid user ID'));
+		}
+
+		// Check if target user exists
+		const existingUser = await db.user.findUnique({
+			where: { id },
+			select: { id: true, username: true }
+		});
+
+		if (!existingUser) {
+			return createErrorResponse(new Error('User not found'));
+		}
+
+		// Validating values with zod and EditUserSchema
+		const validatedFields = EditUserSchema.safeParse(values);
+
+		// Safe checking if all fields are valid
+		if (!validatedFields.success) {
+			return createErrorResponse(new Error(`Validation failed: ${JSON.stringify(validatedFields.error.flatten().fieldErrors)}`));
+		}
+
+		const { username, role, firstname, lastname, newPassword } =
+			validatedFields.data;
+
+		// Check for username conflicts (excluding current user)
+		if (username !== existingUser.username) {
+			const usernameExists = await db.user.findFirst({
+				where: {
+					username,
+					NOT: { id }
+				}
+			});
+
+			if (usernameExists) {
+				return createErrorResponse(new Error('Username already exists'));
+			}
+		}
+
+		// Hash password if provided
+		const hashedPassword = newPassword ? await bcrypt.hash(newPassword, 12) : undefined;
+
+		// Update user with explicit field mapping (no mass assignment)
 		await db.user.update({
-			where: {
-				id: id,
-			},
+			where: { id },
 			data: {
-				username: username,
-				role: role,
-				firstname: firstname,
-				lastname: lastname,
+				username,
+				role,
+				firstname,
+				lastname,
 				...(hashedPassword && { password: hashedPassword }),
+				updatedAt: new Date(),
 			},
 		});
 
-		return { success: 'Poprawnie edytowano użytkownika!' };
-	} catch (err) {
-		return { error: 'Coś poszło nie tak' };
+		return createSuccessResponse('User updated successfully');
+	} catch (error) {
+		console.error('Error updating user:', error);
+		return createErrorResponse(error);
 	}
 };

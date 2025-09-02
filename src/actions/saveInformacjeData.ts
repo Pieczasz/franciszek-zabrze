@@ -1,6 +1,8 @@
 'use server';
 
 import { db } from '@/lib/db';
+import { requireAdmin, createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 interface InformacjeProps {
 	content: string;
@@ -8,15 +10,21 @@ interface InformacjeProps {
 
 const saveInformacjeData = async (data: InformacjeProps) => {
 	try {
+		// Ensure only admins can update content
+		await requireAdmin();
+
+		// Sanitize HTML content to prevent XSS
+		const sanitizedContent = sanitizeHtml(data.content);
+
 		await db.informacje.update({
 			where: { id: '1' },
-			data: data,
+			data: { content: sanitizedContent },
 		});
 
-		return { message: 'Informacje updated successfully' };
+		return createSuccessResponse('Informacje updated successfully');
 	} catch (error) {
-		console.error('Error saving data:', error);
-		throw new Error('Error saving Informacje data');
+		console.error('Error saving informacje data:', error);
+		return createErrorResponse(error);
 	}
 };
 

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 
 // Components
 import MaxWidthWrapper from '@/components/MaxWidthWrapper';
+import { SafeHTML } from '@/components/SafeHTML';
 
 // Database
 import findInformacjeData from '@/actions/findInformacjeData';
@@ -55,11 +56,12 @@ export default function Informacje() {
 
 		try {
 			const result = await saveInformacjeData(editValues);
-			if (result) {
+			if (result.success) {
 				setInformacje(editValues);
 				setIsEditing(false);
+				alert('message' in result ? result.message : 'Changes saved successfully');
 			} else {
-				alert('Failed to save changes');
+				alert('error' in result ? result.error : 'Failed to save changes');
 			}
 		} catch (error) {
 			console.error('Error saving data:', error);
@@ -68,7 +70,7 @@ export default function Informacje() {
 	};
 
 	if (loading) {
-		return <div className="min-h-screen bg-white"></div>;
+		return <div className="min-h-screen bg-white" />;
 	}
 
 	if (!informacje) {
@@ -91,12 +93,11 @@ export default function Informacje() {
 				) : (
 					<>
 						<hr className="w-full mb-7" />
-						<div
-							className="dangerouslySetInnerHTML flex flex-col max-w-fit w-[100ch] mb-14"
-							dangerouslySetInnerHTML={{
-								__html: informacje.content,
-							}}
-						></div>
+						<SafeHTML 
+							content={informacje.content}
+							className="flex flex-col max-w-fit w-[100ch] mb-14"
+							fallback="Content loading..."
+						/>
 						<hr className="w-full my-7" />
 					</>
 				)}

@@ -9,6 +9,7 @@ import { useState } from 'react';
 // Components
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 import {
 	NavigationMenu,
@@ -82,9 +83,9 @@ const Nav: React.FC = () => {
 			{/* Mobile Navbar */}
 			<div className="lg:hidden flex justify-between items-center px-4">
 				<div className="mr-4">
-					<a href="/">
+					<Link href="/">
 						<Image src="/logo.png" alt="Logo" width={200} height={100} />
-					</a>
+					</Link>
 				</div>
 				<div>
 					<FaBars className="text-2xl" onClick={toggleNavbar} />
@@ -100,24 +101,24 @@ const Nav: React.FC = () => {
 						</PopoverTrigger>
 						<PopoverContent className="w-80">
 							<div className="grid gap-4">
-								<a
+								<Link
 									href="/aktualnosci/ogloszenia-parafialne"
 									className="w-full text-center"
 								>
 									Ogłoszenia parafialne
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/aktualnosci/intencje-mszalne"
 									className="w-full text-center"
 								>
 									Intencje mszalne
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/aktualnosci/nabozenstwa"
 									className="w-full text-center"
 								>
 									Nabożeństwa
-								</a>
+								</Link>
 							</div>
 						</PopoverContent>
 					</Popover>
@@ -129,42 +130,42 @@ const Nav: React.FC = () => {
 						</PopoverTrigger>
 						<PopoverContent className="w-80">
 							<div className="grid gap-4">
-								<a
+								<Link
 									href="/posluga-duszpasterska/chrzest"
 									className="w-full text-center"
 								>
 									Chrzest
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/posluga-duszpasterska/bierzmowanie"
 									className="w-full text-center"
 								>
 									Bierzmowanie
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/posluga-duszpasterska/sakrament-malzenstwa"
 									className="w-full text-center"
 								>
 									Sakrament małżeństwa
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/posluga-duszpasterska/sakramenty-chorych"
 									className="w-full text-center"
 								>
 									Sakramenty chorych
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/posluga-duszpasterska/pogrzeb"
 									className="w-full text-center"
 								>
 									Pogrzeb
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/posluga-duszpasterska/spowiedz"
 									className="w-full text-center"
 								>
 									Spowiedź
-								</a>
+								</Link>
 							</div>
 						</PopoverContent>
 					</Popover>
@@ -214,27 +215,27 @@ const Nav: React.FC = () => {
 							</div>
 						</PopoverContent>
 					</Popover>
-					<a href="/msze-sw-w-zabrzu" className="w-full text-center">
+					<Link href="/msze-sw-w-zabrzu" className="w-full text-center">
 						<MenuItem className="w-full">Msze św. w Zabrzu</MenuItem>
-					</a>
+					</Link>
 					<a
 						href="https://opoka.org.pl/liturgia/"
 						className="w-full text-center"
 					>
 						<MenuItem className="w-full">Czytania na dziś</MenuItem>
 					</a>
-					<a href="/cmentarz" className="w-full text-center">
+					<Link href="/cmentarz" className="w-full text-center">
 						<MenuItem className="w-full">Cmentarz</MenuItem>
-					</a>
+					</Link>
 				</div>
 			)}
 
 			{/* Desktop Navbar */}
 			<div className="hidden lg:flex justify-between items-center px-4">
 				<div className="mr-4">
-					<a href="/">
+					<Link href="/">
 						<Image src="/logo.png" alt="Logo" width={200} height={100} />
-					</a>
+					</Link>
 				</div>
 				<div className="flex flex-wrap gap-x-1">
 					<NavigationMenu>
@@ -337,15 +338,15 @@ const Nav: React.FC = () => {
 							</NavigationMenuItem>
 						</NavigationMenuList>
 					</NavigationMenu>
-					<a href="/msze-sw-w-zabrzu">
+					<Link href="/msze-sw-w-zabrzu">
 						<MenuItem>Msze św. w Zabrzu</MenuItem>
-					</a>
+					</Link>
 					<a href="https://opoka.org.pl/liturgia/">
 						<MenuItem>Czytania na dziś</MenuItem>
 					</a>
-					<a href="/cmentarz">
+					<Link href="/cmentarz">
 						<MenuItem>Cmentarz</MenuItem>
-					</a>
+					</Link>
 				</div>
 			</div>
 		</nav>
@@ -353,13 +354,13 @@ const Nav: React.FC = () => {
 };
 
 const ListItem = React.forwardRef<
-	React.ElementRef<'a'>,
-	React.ComponentPropsWithoutRef<'a'>
+	React.ElementRef<typeof Link>,
+	React.ComponentPropsWithoutRef<typeof Link>
 >(({ className, title, children, ...props }, ref) => {
 	return (
 		<li>
 			<NavigationMenuLink asChild>
-				<a
+				<Link
 					ref={ref}
 					className={cn(
 						'block select-none space-y-1 rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
@@ -371,7 +372,7 @@ const ListItem = React.forwardRef<
 					<p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
 						{children}
 					</p>
-				</a>
+				</Link>
 			</NavigationMenuLink>
 		</li>
 	);

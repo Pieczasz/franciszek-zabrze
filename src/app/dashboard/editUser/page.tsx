@@ -98,12 +98,14 @@ export default function EditUserForm() {
 				.then((data) => {
 					if (data.success) {
 						form.reset();
-						setSuccess(data.success);
+						setSuccess('User updated successfully');
 						window.location.reload();
 					} else {
-						if (typeof data.error === 'object' && data.error !== null) {
+						if ('error' in data && typeof data.error === 'object' && data.error !== null) {
 							const fieldErrors = Object.values(data.error).flat().join(', ');
 							setError(fieldErrors);
+						} else if ('error' in data && typeof data.error === 'string') {
+							setError(data.error);
 						} else {
 							setError('Unknown error');
 						}

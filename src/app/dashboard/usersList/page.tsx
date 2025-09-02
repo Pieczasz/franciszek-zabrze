@@ -7,6 +7,7 @@ import findUsers from '@/actions/findUsers';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 // Components
 
@@ -25,6 +26,15 @@ import {
 } from '@/components/ui/alert-dialog';
 
 import { Button } from '@/components/ui/button';
+import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from '@/components/ui/pagination';
 
 // Interfaces
 
@@ -35,34 +45,51 @@ interface User {
 	firstname: string;
 	lastname: string;
 }
-export default function Profile() {
-	const [users, setUsers] = useState<User[]>([]);
-	const [loading, setLoading] = useState(false);
 
-	// Getting users
+interface PaginationData {
+	data: User[];
+	total: number;
+	currentPage: number;
+	totalPages: number;
+	hasNextPage: boolean;
+	hasPrevPage: boolean;
+}
+
+export default function Profile() {
+	const [paginationData, setPaginationData] = useState<PaginationData | null>(null);
+	const [loading, setLoading] = useState(false);
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	
+	const currentPage = Number(searchParams.get('page')) || 1;
+	const itemsPerPage = 5;
+
+	// Getting users with pagination
 	useEffect(() => {
 		setLoading(true);
-		findUsers()
+		findUsers({ page: currentPage, limit: itemsPerPage })
 			.then((data) => {
-				setUsers(data);
+				setPaginationData(data);
 				setLoading(false);
 			})
 			.catch((error) => {
 				setLoading(false);
 				throw error;
 			});
-	}, []);
+	}, [currentPage]);
 
 	const handleDeleteUser = async (userId: string) => {
-		try {
 			await deleteUser(userId);
-			window.location.reload();
-		} catch (error) {
-			throw error;
-		}
+			// Refresh the current page data instead of full page reload
+			const data = await findUsers({ page: currentPage, limit: itemsPerPage });
+			setPaginationData(data);
 	};
 
-	const router = useRouter();
+	const handlePageChange = (page: number) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set('page', page.toString());
+		router.push(`/dashboard/usersList?${params.toString()}`);
+	};
 
 	const { data } = useSession();
 	if (!data) {
@@ -73,12 +100,20 @@ export default function Profile() {
 		router.push(`/dashboard/editUser?userId=${userId}`);
 	};
 
+	const users = paginationData?.data || [];
+	
 	return (
 		<div className="flex min-h-screen flex-col items-center  bg-white relative overflow-hidden">
 			<MaxWidthWrapper className="flex flex-col items-center justify-center mt-7 gap-y-4">
 				<h1 className="text-3xl font-bold ">Lista użytkowników</h1>
+				{paginationData && (
+					<p className="text-sm text-gray-600">
+						Strona {paginationData.currentPage} z {paginationData.totalPages} 
+						({paginationData.total} użytkowników)
+					</p>
+				)}
 				<div className="">
-					{loading && <p></p>}
+					{loading && <p>Ładowanie...</p>}
 					{users.map((user) => (
 						<div key={user.id} className="flex flex-col gap-y-2 items-center">
 							<pre>{`Nazwa użytkownika: ${user.username}`}</pre>
@@ -126,6 +161,81 @@ export default function Profile() {
 						</div>
 					))}
 				</div>
+				
+				{/* Pagination Controls */}
+				{paginationData && paginationData.totalPages > 1 && (
+					<div className="mt-8">
+						<Pagination>
+							<PaginationContent>
+								{paginationData.hasPrevPage && (
+									<PaginationItem>
+										<PaginationPrevious 
+											href="#" 
+											onClick={(e) => {
+												e.preventDefault();
+												handlePageChange(currentPage - 1);
+											}}
+										/>
+									</PaginationItem>
+								)}
+								
+								{/* Page numbers */}
+								{Array.from({ length: paginationData.totalPages }, (_, i) => i + 1).map((page) => {
+									// Show first page, last page, current page, and pages around current
+									const isVisible = page === 1 || 
+													 page === paginationData.totalPages || 
+													 (page >= currentPage - 1 && page <= currentPage + 1);
+									
+									if (!isVisible) {
+										// Show ellipsis if there's a gap
+										if (page === 2 && currentPage > 4) {
+											return (
+												<PaginationItem key="ellipsis1">
+													<PaginationEllipsis />
+												</PaginationItem>
+											);
+										}
+										if (page === paginationData.totalPages - 1 && currentPage < paginationData.totalPages - 3) {
+											return (
+												<PaginationItem key="ellipsis2">
+													<PaginationEllipsis />
+												</PaginationItem>
+											);
+										}
+										return null;
+									}
+									
+									return (
+										<PaginationItem key={page}>
+											<PaginationLink
+												href="#"
+												isActive={page === currentPage}
+												onClick={(e) => {
+													e.preventDefault();
+													handlePageChange(page);
+												}}
+											>
+												{page}
+											</PaginationLink>
+										</PaginationItem>
+									);
+								})}
+								
+								{paginationData.hasNextPage && (
+									<PaginationItem>
+										<PaginationNext 
+											href="#" 
+											onClick={(e) => {
+												e.preventDefault();
+												handlePageChange(currentPage + 1);
+											}}
+										/>
+									</PaginationItem>
+								)}
+							</PaginationContent>
+						</Pagination>
+					</div>
+				)}
 			</MaxWidthWrapper>
 		</div>
 	);
